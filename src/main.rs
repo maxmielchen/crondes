@@ -63,12 +63,19 @@ async fn main() {
     let interval = Duration::from_secs(cf.config.update_interval_secs);
 
     tokio::spawn(async move {
+        let mut run_count = 0;
         loop {
+            run_count += 1;
+            info!("--- Update loop iteration #{} ---", run_count);
+            info!("Starting update cycle...");
             if let Err(e) = update(&cf).await {
-                error!("Update failed: {}. Shutting down.", e);
+                error!("Update failed: {}. Shutting down scheduler.", e);
                 shutdown_signal.notify_waiters();
                 break;
+            } else {
+                info!("Update completed successfully.");
             }
+            info!("Waiting {} seconds until next iteration...", interval.as_secs());
             tokio::select! {
                 _ = tokio::time::sleep(interval) => {},
                 _ = shutdown_signal.notified() => break,
@@ -83,12 +90,21 @@ async fn main() {
 
 /// Führt einen vollständigen Update-Zyklus durch: check_all_info und ggf. IP-Update.
 async fn update(cf: &Cloudflare) -> Result<(), Box<dyn Error>> {
+    info!("Checking Cloudflare credentials and IDs...");
     check_all_info(cf).await?;
     let current_dns_ip = cf.current_ip().await?;
+    info!("Current DNS IP: {}", current_dns_ip);
     let public_ip = crate::ip::fetch_public_ip().await?;
+    info!("Public IP: {}", public_ip);
     if current_dns_ip != public_ip {
-        info!("Updating DNS record from {} to {}", current_dns_ip, public_ip);
-        cf.update_ip(&public_ip).await?;
+        info!("Updating DNS record: {} → {}", current_dns_ip, public_ip);
+        match cf.update_ip(&public_ip).await {
+            Ok(_) => info!("DNS record updated successfully."),
+            Err(e) => {
+                error!("Error updating DNS record: {}", e);
+                return Err(e);
+            }
+        }
     } else {
         info!("No update needed. Public IP unchanged: {}", public_ip);
     }
