@@ -2,7 +2,7 @@ use std::error::Error;
 use std::net::IpAddr;
 
 /// List of external services to fetch the public IP address from.
-const IP_SERVICES: &[&str] = [
+const IP_SERVICES: [&str; 5] = [
     "https://api.ipify.org",
     "https://ifconfig.me/ip",
     "https://checkip.amazonaws.com",
@@ -18,12 +18,16 @@ const IP_SERVICES: &[&str] = [
 /// # Errors
 /// Returns an error if no valid public IP address could be determined from any of the services.
 pub async fn fetch_public_ip() -> Result<String, Box<dyn Error>> {
-    for &url in IP_SERVICES {
-        if let Ok(resp) = reqwest::get(url).await.and_then(|r| r.text()).await {
-            let ip = resp.trim();
-            if let Ok(parsed) = ip.parse::<IpAddr>() {
-                if parsed.is_ipv4() {
-                    return Ok(ip.to_string());
+    for &url in IP_SERVICES.iter() {
+        let resp = reqwest::get(url).await;
+        if let Ok(r) = resp {
+            let text = r.text().await;
+            if let Ok(ip) = text {
+                let ip = ip.trim();
+                if let Ok(parsed) = ip.parse::<IpAddr>() {
+                    if parsed.is_ipv4() {
+                        return Ok(ip.to_string());
+                    }
                 }
             }
         }
