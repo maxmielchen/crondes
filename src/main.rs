@@ -37,6 +37,7 @@ pub fn init_and_log_config() -> Result<config::Config, Box<dyn Error>> {
     info!("  CF_API_TOKEN: {}", &cfg.cloudflare_api_token);
     info!("  CF_ZONE_ID: {}", &cfg.cloudflare_zone_id);
     info!("  CF_RECORD_ID: {}", &cfg.cloudflare_record_id);
+    info!("  CF_RECORD_NAME: {}", &cfg.cloudflare_record_name);
     info!("  UPDATE_INTERVAL_SECS: {}", cfg.update_interval_secs);
     Ok(cfg)
 }

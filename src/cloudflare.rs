@@ -6,7 +6,7 @@ use crate::config::Config;
 /// This struct wraps a [`Config`] object and provides methods to check credentials,
 /// validate zone and record IDs, fetch the current DNS record IP, and update the record.
 pub struct Cloudflare {
-    /// The configuration containing API token, zone ID, record ID, and update interval.
+    /// The configuration containing API token, zone ID, record ID, record name, and update interval.
     pub config: Config,
 }
 
@@ -106,7 +106,7 @@ impl Cloudflare {
         let url = format!("https://api.cloudflare.com/client/v4/zones/{}/dns_records/{}", self.config.cloudflare_zone_id, self.config.cloudflare_record_id);
         let body = serde_json::json!({
             "type": "A",
-            "name": "",
+            "name": self.config.cloudflare_record_name,
             "content": new_ip,
             "ttl": 1,
             "proxied": false
