@@ -23,6 +23,9 @@ impl Cloudflare {
     /// - `Ok(false)` if the token is invalid.
     /// - `Err` if the request fails.
     pub async fn api_token_right(&self) -> Result<bool, Box<dyn Error>> {
+        if self.config.cloudflare_api_token.trim().is_empty() {
+            return Ok(false);
+        }
         let client = reqwest::Client::new();
         let resp = client
             .get("https://api.cloudflare.com/client/v4/user/tokens/verify")
@@ -39,6 +42,9 @@ impl Cloudflare {
     /// - `Ok(false)` if not.
     /// - `Err` if the request fails.
     pub async fn zone_id_right(&self) -> Result<bool, Box<dyn Error>> {
+        if self.config.cloudflare_zone_id.trim().is_empty() {
+            return Ok(false);
+        }
         let client = reqwest::Client::new();
         let url = format!("https://api.cloudflare.com/client/v4/zones/{}", self.config.cloudflare_zone_id);
         let resp = client
@@ -56,6 +62,9 @@ impl Cloudflare {
     /// - `Ok(false)` if not.
     /// - `Err` if the request fails.
     pub async fn record_id_right(&self) -> Result<bool, Box<dyn Error>> {
+        if self.config.cloudflare_record_id.trim().is_empty() {
+            return Ok(false);
+        }
         let client = reqwest::Client::new();
         let url = format!("https://api.cloudflare.com/client/v4/zones/{}/dns_records/{}", self.config.cloudflare_zone_id, self.config.cloudflare_record_id);
         let resp = client
