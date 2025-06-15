@@ -114,4 +114,40 @@ impl Cloudflare {
             Err("Failed to update IP".into())
         }
     }
+
+    /// Lists all DNS records for the configured zone.
+    ///
+    /// # Returns
+    /// - `Ok(Vec<RecordInfo>)` with all records if successful.
+    /// - `Err` if the request fails or the response is invalid.
+    pub async fn list_records(&self) -> Result<Vec<RecordInfo>, Box<dyn Error>> {
+        let client = reqwest::Client::new();
+        let url = format!("https://api.cloudflare.com/client/v4/zones/{}/dns_records", self.config.cloudflare_zone_id);
+        let resp = client
+            .get(&url)
+            .bearer_auth(&self.config.cloudflare_api_token)
+            .send()
+            .await?;
+        let json: serde_json::Value = resp.json().await?;
+        let mut records = Vec::new();
+        if let Some(arr) = json["result"].as_array() {
+            for rec in arr {
+                let id = rec["id"].as_str().unwrap_or("").to_string();
+                let name = rec["name"].as_str().unwrap_or("").to_string();
+                let record_type = rec["type"].as_str().unwrap_or("").to_string();
+                let content = rec["content"].as_str().unwrap_or("").to_string();
+                records.push(RecordInfo { id, name, record_type, content });
+            }
+        }
+        Ok(records)
+    }
+}
+
+/// Simple struct to hold DNS record info.
+#[derive(Debug, Clone)]
+pub struct RecordInfo {
+    pub id: String,
+    pub name: String,
+    pub record_type: String,
+    pub content: String,
 }
