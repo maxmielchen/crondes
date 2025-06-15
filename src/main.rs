@@ -99,7 +99,7 @@ async fn update(cf: &Cloudflare) -> Result<(), Box<dyn Error>> {
     if current_dns_ip != public_ip {
         info!("Updating DNS record: {} → {}", current_dns_ip, public_ip);
         match cf.update_ip(&public_ip).await {
-            Ok(_) => info!("DNS record updated successfully."),
+            Ok(response_body) => info!("DNS record updated successfully. Response: {}", response_body),
             Err(e) => {
                 error!("Error updating DNS record: {}", e);
                 return Err(e);

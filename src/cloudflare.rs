@@ -101,7 +101,7 @@ impl Cloudflare {
     /// # Returns
     /// - `Ok(())` if the update was successful.
     /// - `Err` if the update failed.
-    pub async fn update_ip(&self, new_ip: &str) -> Result<(), Box<dyn Error>> {
+    pub async fn update_ip(&self, new_ip: &str) -> Result<String, Box<dyn Error>> {
         let client = reqwest::Client::new();
         let url = format!("https://api.cloudflare.com/client/v4/zones/{}/dns_records/{}", self.config.cloudflare_zone_id, self.config.cloudflare_record_id);
         let body = serde_json::json!({
@@ -117,10 +117,12 @@ impl Cloudflare {
             .json(&body)
             .send()
             .await?;
-        if resp.status().is_success() {
-            Ok(())
+        let status = resp.status();
+        let text = resp.text().await.unwrap_or_else(|_| "<Failed to read response body>".to_string());
+        if status.is_success() {
+            Ok(text)
         } else {
-            Err("Failed to update IP".into())
+            Err(format!("Failed to update IP. Status: {}. Body: {}", status, text).into())
         }
     }
 
