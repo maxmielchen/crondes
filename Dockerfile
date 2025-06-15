@@ -1,16 +1,9 @@
-# --- Build Stage ---
-FROM rustlang/rust:nightly AS builder
+ARG BINARY_NAME_DEFAULT=crondes
 
-WORKDIR /app
-
+FROM clux/muslrust:stable AS builder
 COPY . .
+RUN cargo build --target x86_64-unknown-linux-musl --release && mkdir -p /out && cp target/x86_64-unknown-linux-musl/release/crondes /out/
 
-RUN rustup target add x86_64-unknown-linux-musl
-RUN cargo build --release --target x86_64-unknown-linux-musl
-
-# --- Minimal Scratch Stage ---
 FROM scratch
-
-COPY --from=builder /app/target/x86_64-unknown-linux-musl/release/crondes /crondes
-
-ENTRYPOINT ["/crondes"]
+COPY --from=builder /out/crondes /
+CMD ["/crondes"]
