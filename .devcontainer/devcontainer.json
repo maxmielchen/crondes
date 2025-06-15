@@ -1,8 +1,7 @@
 {
-	"name": "Fedora",
-	"image": "mcr.microsoft.com/devcontainers/fedora:latest",
+	"name": "Rust",
+	"image": "mcr.microsoft.com/vscode/devcontainers/rust:latest",
 	"features": {
-		"ghcr.io/devcontainers/features/docker-in-docker:2": {},
-		"ghcr.io/devcontainers/features/rust:1": {}
+		"ghcr.io/devcontainers/features/docker-in-docker:2": {}
 	}
 }
